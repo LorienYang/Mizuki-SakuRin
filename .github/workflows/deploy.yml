@@ -1,11 +1,7 @@
-name: Fuwari-yCENzh CI
+name: Sever Deploy CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+  repository_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
