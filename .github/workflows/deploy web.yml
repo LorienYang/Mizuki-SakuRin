@@ -1,30 +1,21 @@
-name: Deploy to Pages Branch
+name: Deploy to gh-pages
 
 on:
   push:
     branches: [ master ]
 
   workflow_dispatch:
-    inputs:
-      enable_artifact:
-        description: '是否生成可下载 artifact'
-        required: false
-        default: 'false'
-
   repository_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
-    env:
-      ENABLE_EXTRA_ARTIFACT: ${{ github.event.inputs.enable_artifact || 'false' }}
-
     steps:
-      - name: Checkout your repository using git
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
@@ -50,32 +41,8 @@ jobs:
           CONTENT_REPO_URL: ${{ secrets.CONTENT_REPO_URL }}
           USE_SUBMODULE: true
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: dist
-
-      - name: Upload extra artifact
-        if: env.ENABLE_EXTRA_ARTIFACT == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: site-dist
-          path: dist
-
-  deploy-gh-pages:
-    needs: build
-    runs-on: ubuntu-latest
-    name: 部署到 GitHub Pages
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    permissions:
-      pages: write
-      id-token: write
-
-    steps:
-      - name: 部署到 GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
