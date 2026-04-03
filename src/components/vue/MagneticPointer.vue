@@ -10,8 +10,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
 
-// 参考原始参数
-const BASE_SIZE = 40; // 对应 4rem 左右
+const BASE_SIZE = 40;
 const x = ref(0);
 const y = ref(0);
 const w = ref(BASE_SIZE);
@@ -26,7 +25,6 @@ let rafId = null;
 let currentMagneticElement = null;
 
 const pointerStyle = computed(() => ({
-	// 采用 translate3d 硬件加速
 	transform: `translate3d(${x.value}px, ${y.value}px, 0) translate3d(-50%, -50%, 0)`,
 	width: `${w.value}px`,
 	height: `${h.value}px`,
@@ -34,21 +32,22 @@ const pointerStyle = computed(() => ({
 }));
 
 const updatePosition = (e) => {
-	if (currentMagneticElement) {
+	// 关键修复：增加 check 确保元素依然在页面上
+	if (currentMagneticElement && document.contains(currentMagneticElement)) {
 		const rect = currentMagneticElement.getBoundingClientRect();
 		const centerX = rect.left + rect.width / 2;
 		const centerY = rect.top + rect.height / 2;
 
-		// --- 强吸力逻辑 ---
-		// 0.1 系数参考自原始代码，表现出极强的向心吸力
 		targetX = centerX + (e.clientX - centerX) * 0.1;
 		targetY = centerY + (e.clientY - centerY) * 0.1;
 
-		// 呼吸空间参考原始公式：innerWidth / 50
-		const dynamicPadding = window.innerWidth / 50;
+		// 你提到的 Padding 缩小建议，这里可以改为固定值如 8
+		const dynamicPadding = 8;
 		targetW = rect.width + dynamicPadding;
 		targetH = rect.height + dynamicPadding;
 	} else {
+		// 如果元素消失了，立即重置目标状态
+		currentMagneticElement = null;
 		targetX = e.clientX;
 		targetY = e.clientY;
 		targetW = BASE_SIZE;
@@ -57,9 +56,7 @@ const updatePosition = (e) => {
 };
 
 const render = () => {
-	// 提高 Lerp 系数到 0.25，增强吸附时的冲击感
 	const lerpSpeed = 0.25;
-
 	x.value += (targetX - x.value) * lerpSpeed;
 	y.value += (targetY - y.value) * lerpSpeed;
 	w.value += (targetW - w.value) * lerpSpeed;
@@ -70,18 +67,28 @@ const render = () => {
 
 const setupEvents = () => {
 	const updateTargets = () => {
-		// 绑定目标改为你要求的 card-base
 		const elements = document.querySelectorAll(".magnetic");
 		elements.forEach((el) => {
-			el.onmouseenter = () => (currentMagneticElement = el);
-			el.onmouseleave = () => (currentMagneticElement = null);
+			// 防止重复绑定
+			if (el.dataset.magneticBound) return;
+			el.dataset.magneticBound = "true";
+
+			el.addEventListener(
+				"mouseenter",
+				() => (currentMagneticElement = el),
+			);
+			el.addEventListener(
+				"mouseleave",
+				() => (currentMagneticElement = null),
+			);
+			// 关键修复：点击后立即释放磁吸状态，防止页面跳转时光标飞走
+			el.addEventListener("click", () => (currentMagneticElement = null));
 		});
 	};
 
 	window.addEventListener("mousemove", updatePosition);
 	updateTargets();
 
-	// 适配 Astro 的 MutationObserver
 	const observer = new MutationObserver(updateTargets);
 	observer.observe(document.body, { childList: true, subtree: true });
 };
