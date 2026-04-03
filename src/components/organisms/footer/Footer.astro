@@ -2,8 +2,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import { footerConfig, profileConfig } from "../../../config";
-import { url } from "../../../utils/url-utils";
+import { footerConfig, profileConfig } from "@/config";
+import { url } from "@utils/url-utils";
 
 const currentYear = new Date().getFullYear();
 
@@ -31,6 +31,10 @@ if (footerConfig.enable) {
 		}
 	}
 }
+
+//vue
+
+import TrustLogo from "@components/vue/TrustLogo.vue";
 ---
 
 <!--<div class="border-t border-[var(--primary)] mx-16 border-dashed py-8 max-w-[var(--page-width)] flex flex-col items-center justify-center px-6">-->
@@ -67,7 +71,16 @@ if (footerConfig.enable) {
 			>
 		</div>
 
-		<div>
+		<div class="mb-2">
+			<a
+			class="transition link text-[var(--primary)] font-medium"
+			target="_blank"
+			href="https://beian.miit.gov.cn/#/Integrated/index">
+				浙ICP备2025171659号-2
+			</a>
+		</div>
+
+		<div class="mb-2">
 			Powered by
 			<a
 				class="transition link text-[var(--primary)] font-medium"
@@ -83,6 +96,10 @@ if (footerConfig.enable) {
 				target="_blank"
 				href="https://github.com/LyraVoid/Mizuki">9.0</a
 			>
+		</div>
+
+		<div>
+			<TrustLogo client:load class="trustlogo-footer"/>
 		</div>
 	</div>
 </div>

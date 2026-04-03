@@ -66,6 +66,9 @@ const kbDurationMs = carouselIntervalMs + fadeMs;
 
 const hasBannerCredit = siteConfig.banner.credit.enable;
 const hasBannerLink = !!siteConfig.banner.credit.url;
+
+//vue组件
+import HitokotoTypewriter from "@/components/vue/HitokotoTypewriter.vue"
 ---
 
 <div
@@ -539,22 +542,10 @@ const hasBannerLink = !!siteConfig.banner.credit.url;
 					)}
 					{overlaySubtitle && (
 						<h2 class="banner-subtitle text-xl lg:text-3xl text-white/90 drop-shadow-md">
-							<span class="inline-block min-h-[1.2em]">
-								{typewriter && Array.isArray(overlaySubtitle) ? (
-									<TypewriterText
-										text={overlaySubtitle}
-										speed={siteConfig.banner.homeText?.typewriter?.speed}
-										deleteSpeed={siteConfig.banner.homeText?.typewriter?.deleteSpeed}
-										pauseTime={siteConfig.banner.homeText?.typewriter?.pauseTime}
-									/>
-								) : Array.isArray(overlaySubtitle) ? (
-									overlaySubtitle[0]
-								) : (
-									overlaySubtitle
-								)}
-							</span>
+							<HitokotoTypewriter client:load />
 						</h2>
 					)}
+
 				</div>
 			</div>
 		</div>

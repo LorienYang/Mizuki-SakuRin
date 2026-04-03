@@ -86,6 +86,9 @@ const transparentClass = getTransparencyClass(shouldEnable);
 
 // 布局模式
 const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
+
+//vue
+import MagneticPointer from "@/components/vue/MagneticPointer.vue"
 ---
 
 <Layout
@@ -96,6 +99,7 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 	setOGTypeArticle={setOGTypeArticle}
 	postSlug={postSlug}
 >
+	<MagneticPointer client:load />
 	<GridScripts
 		navbarTransparentMode={siteConfig.banner?.navbar?.transparentMode ||
 			"semi"}
