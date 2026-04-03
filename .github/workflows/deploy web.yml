@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       enable_artifact:
-        description: '是否生成并上传 artifact（用于部署）'
+        description: '是否生成可下载 artifact'
         required: false
         default: 'false'
 
@@ -21,14 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ENABLE_ARTIFACT: ${{ 
-        github.event.inputs.enable_artifact || 
-        (contains(github.event.head_commit.message, '[deploy]') && 'true') || 
-        'false' 
-      }}
-
-    outputs:
-      enable_artifact: ${{ env.ENABLE_ARTIFACT }}
+      ENABLE_EXTRA_ARTIFACT: ${{ github.event.inputs.enable_artifact || 'false' }}
 
     steps:
       - name: Checkout your repository using git
@@ -57,16 +50,20 @@ jobs:
           CONTENT_REPO_URL: ${{ secrets.CONTENT_REPO_URL }}
           USE_SUBMODULE: true
 
-      - name: Upload artifact
-        if: env.ENABLE_ARTIFACT == 'true'
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
+      - name: Upload extra artifact
+        if: env.ENABLE_EXTRA_ARTIFACT == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-dist
+          path: dist
+
   deploy-gh-pages:
     needs: build
-    if: needs.build.outputs.enable_artifact == 'true'
-
     runs-on: ubuntu-latest
     name: 部署到 GitHub Pages
 
