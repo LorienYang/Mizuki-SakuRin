@@ -1,61 +1,78 @@
 name: Deploy to Pages Branch
 
 on:
-  # 每次推送到 `main` 分支时触发这个"工作流程"
-  # 如果你使用了别的分支名，请按需将 `main` 替换成你的分支名
   push:
     branches: [ master ]
-  # 允许你在 GitHub 上的 Actions 标签中手动触发此"工作流程"
-  workflow_dispatch:
-  repository_dispatch: 
 
-# 需要写入权限来推送到pages分支
+  workflow_dispatch:
+    inputs:
+      enable_artifact:
+        description: '是否生成并上传 artifact（用于部署）'
+        required: false
+        default: 'false'
+
+  repository_dispatch:
+
 permissions:
   contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      ENABLE_ARTIFACT: ${{ 
+        github.event.inputs.enable_artifact || 
+        (contains(github.event.head_commit.message, '[deploy]') && 'true') || 
+        'false' 
+      }}
+
+    outputs:
+      enable_artifact: ${{ env.ENABLE_ARTIFACT }}
+
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
         with:
-          submodules: true  # 支持 Git Submodule 模式
-          token: ${{ secrets.GITHUB_TOKEN }}  # 自动访问同账号下的私有仓库
-      
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           run_install: false
-          
+
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-      
+
       - name: Build site
         run: pnpm run build
         env:
-          # 如果需要启用内容分离,取消以下注释并配置
           ENABLE_CONTENT_SYNC: true
           CONTENT_REPO_URL: ${{ secrets.CONTENT_REPO_URL }}
           USE_SUBMODULE: true
-      
+
       - name: Upload artifact
+        if: env.ENABLE_ARTIFACT == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-          
+
   deploy-gh-pages:
+    needs: build
+    if: needs.build.outputs.enable_artifact == 'true'
+
+    runs-on: ubuntu-latest
+    name: 部署到 GitHub Pages
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
-    name: 部署到 GitHub Pages
 
     permissions:
       pages: write
