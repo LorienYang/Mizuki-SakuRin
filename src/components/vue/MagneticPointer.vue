@@ -11,11 +11,17 @@
 import { ref, onMounted, onUnmounted, computed } from "vue";
 
 const BASE_SIZE = 40;
+const PADDING = 8;
+
 const x = ref(0);
 const y = ref(0);
 const w = ref(BASE_SIZE);
 const h = ref(BASE_SIZE);
 const isMobile = ref(false);
+
+// 记录最后一次鼠标的窗口坐标
+let lastMouseX = 0;
+let lastMouseY = 0;
 
 let targetX = 0;
 let targetY = 0;
@@ -31,64 +37,72 @@ const pointerStyle = computed(() => ({
 	opacity: x.value === 0 ? 0 : 1,
 }));
 
-const updatePosition = (e) => {
-	// 关键修复：增加 check 确保元素依然在页面上
+// 统更新逻辑
+const updatePosition = (clientX, clientY) => {
+	lastMouseX = clientX;
+	lastMouseY = clientY;
+
+	// 滚动时探测鼠标下方的元素，动态更新磁吸目标
+	const elementUnderMouse = document.elementFromPoint(clientX, clientY);
+	const magneticTarget = elementUnderMouse?.closest(".magnetic");
+
+	if (magneticTarget) {
+		currentMagneticElement = magneticTarget;
+	} else {
+		currentMagneticElement = null;
+	}
+
 	if (currentMagneticElement && document.contains(currentMagneticElement)) {
 		const rect = currentMagneticElement.getBoundingClientRect();
 		const centerX = rect.left + rect.width / 2;
 		const centerY = rect.top + rect.height / 2;
 
-		targetX = centerX + (e.clientX - centerX) * 0.1;
-		targetY = centerY + (e.clientY - centerY) * 0.1;
-
-		// 你提到的 Padding 缩小建议，这里可以改为固定值如 8
-		const dynamicPadding = 8;
-		targetW = rect.width + dynamicPadding;
-		targetH = rect.height + dynamicPadding;
+		targetX = centerX + (clientX - centerX) * 0.1;
+		targetY = centerY + (clientY - centerY) * 0.1;
+		targetW = rect.width + PADDING;
+		targetH = rect.height + PADDING;
 	} else {
-		// 如果元素消失了，立即重置目标状态
-		currentMagneticElement = null;
-		targetX = e.clientX;
-		targetY = e.clientY;
+		targetX = clientX;
+		targetY = clientY;
 		targetW = BASE_SIZE;
 		targetH = BASE_SIZE;
 	}
 };
 
+// 鼠标移动处理器
+const handleMouseMove = (e) => {
+	updatePosition(e.clientX, e.clientY);
+};
+
+// 滚动处理器
+const handleScroll = () => {
+	// 滚动时使用最后记录的鼠标位置重新计算
+	updatePosition(lastMouseX, lastMouseY);
+};
+
 const render = () => {
-	const lerpSpeed = 0.25;
+	const lerpSpeed = 0.15;
 	x.value += (targetX - x.value) * lerpSpeed;
 	y.value += (targetY - y.value) * lerpSpeed;
 	w.value += (targetW - w.value) * lerpSpeed;
 	h.value += (targetH - h.value) * lerpSpeed;
-
 	rafId = requestAnimationFrame(render);
 };
 
 const setupEvents = () => {
+	window.addEventListener("mousemove", handleMouseMove);
+	window.addEventListener("scroll", handleScroll, { passive: true });
+
+	// MutationObserver 依然保留，用于处理动态加载的 DOM
 	const updateTargets = () => {
 		const elements = document.querySelectorAll(".magnetic");
 		elements.forEach((el) => {
-			// 防止重复绑定
 			if (el.dataset.magneticBound) return;
 			el.dataset.magneticBound = "true";
-
-			el.addEventListener(
-				"mouseenter",
-				() => (currentMagneticElement = el),
-			);
-			el.addEventListener(
-				"mouseleave",
-				() => (currentMagneticElement = null),
-			);
-			// 关键修复：点击后立即释放磁吸状态，防止页面跳转时光标飞走
 			el.addEventListener("click", () => (currentMagneticElement = null));
 		});
 	};
-
-	window.addEventListener("mousemove", updatePosition);
 	updateTargets();
-
 	const observer = new MutationObserver(updateTargets);
 	observer.observe(document.body, { childList: true, subtree: true });
 };
@@ -104,7 +118,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-	window.removeEventListener("mousemove", updatePosition);
+	window.removeEventListener("mousemove", handleMouseMove);
+	window.removeEventListener("scroll", handleScroll);
 	if (rafId) cancelAnimationFrame(rafId);
 });
 </script>

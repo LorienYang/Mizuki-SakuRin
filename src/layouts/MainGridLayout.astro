@@ -89,6 +89,7 @@ const defaultPostListLayout = siteConfig.postListLayout?.defaultMode || "list";
 
 //vue
 import MagneticPointer from "@/components/vue/MagneticPointer.vue"
+import Cursor from "@components/vue/cursor.vue";
 ---
 
 <Layout
@@ -99,6 +100,7 @@ import MagneticPointer from "@/components/vue/MagneticPointer.vue"
 	setOGTypeArticle={setOGTypeArticle}
 	postSlug={postSlug}
 >
+	<Cursor client:load/>
 	<MagneticPointer client:load />
 	<GridScripts
 		navbarTransparentMode={siteConfig.banner?.navbar?.transparentMode ||
