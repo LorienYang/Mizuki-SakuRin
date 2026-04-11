@@ -5,8 +5,27 @@
   <link href="https://blog.sakurin.cn/" rel="alternate" type="text/html"/>
   <link href="https://blog.sakurin.cn/atom.xml" rel="self" type="application/atom+xml"/>
   <id>https://blog.sakurin.cn/</id>
-  <updated>2026-04-04T14:11:07.548Z</updated>
+  <updated>2026-04-11T15:25:25.696Z</updated>
   <language>zh_CN</language>
+  <entry>
+    <title>SakuRin镜像</title>
+    <link href="https://blog.sakurin.cn/SakuRin_Mirror/" rel="alternate" type="text/html"/>
+    <id>https://blog.sakurin.cn/SakuRin_Mirror/</id>
+    <published>2026-04-11T00:00:00.000Z</published>
+    <updated>2026-04-11T00:00:00.000Z</updated>
+    <summary>镜像部分开源项目，便于访问</summary>
+    <content type="html"><![CDATA[<p>本文章主要记录我镜像的部分开源项目，便于大家访问</p>
+<h3>全国邦群地图 · BanG Dream! 同好社群导航</h3>
+<p>::github{repo="HELPMEEADICE/china-bandori-maps"}</p>
+<p><strong>项目简介</strong></p>
+<p>本网站用于聚合展示全国各省及海外地区的 BanG Dream! 群聊信息，支持地图缩放、拖拽、分省查看、国外切换与一键复制群号，帮助同好快速找到组织</p>
+<p><strong>镜像节点：<a href="https://bg.sakurin.cn">点此访问</a></strong></p>
+]]></content>
+    <author>
+      <name>Lorien Yang</name>
+    </author>
+    <category term="开发"></category>
+  </entry>
   <entry>
     <title>Hello World！</title>
     <link href="https://blog.sakurin.cn/HelloWorld/" rel="alternate" type="text/html"/>
